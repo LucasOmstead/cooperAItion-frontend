@@ -1,0 +1,19 @@
+<div *ngIf="playerFinished" #table class="grid border divide-x divide-y">
+    <h1>Match Results:</h1>
+    <h1 *ngFor="let player of players">{{player.name}}</h1>
+    <ng-container *ngFor="let m of matchResults; let i = index">
+        <h1>{{players[i].name}}</h1>
+        <ng-container *ngFor="let result of m; let j = index">
+            <!-- [j][i] instead of i j because matchResults[i][j] = from perspective of player i. We want the table's COLUMNS to represent that player's matches from their perspective,
+             so grid[i][j] should be from the perspective of j, so matchResults[j][i]
+             -->
+            <div class="border border-black">
+                <app-match-view [match]="matchResults[j][i]" [payoffs]="payoffs"></app-match-view>
+            </div>
+        </ng-container>
+    </ng-container>
+</div>
+<div *ngIf="!playerFinished">
+    <h1 #curPlayerName></h1>
+</div>
+ <!-- <app-match-view *ngFor="let m of matchResults.flat(); let i = index" [match]="matchResults[floor(i/matchResults.length)][i%matchResults[0].length]"></app-match-view> -->
