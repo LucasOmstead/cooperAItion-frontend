@@ -1,0 +1,4 @@
+1. Add a leaderboard page to view the total score each player got; clickable to show match history
+2. Make the model and yourself play the same number of rounds against all players to be fair (some randomness is necessary ofc)
+3. Randomize the order in which you play each model
+4. Make UI look better
