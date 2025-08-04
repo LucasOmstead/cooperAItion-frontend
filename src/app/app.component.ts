@@ -119,11 +119,15 @@ export class AppComponent implements OnInit {
   
   playerNames = Object.entries(this.playerCounts);
   
-  userGamesResults: [number[], number[]][] = [];
+  
+  matchResults: [number[], number[]][][] = []
+  playerScores: number[] = [];
+  orderMap!: { [key: number]: number };
+  roundsPerPlayer!: { [key: number]: number };
   constructor(private apiService: ApiService) {
   }
 
-  changePage = (newPage: number) => {
+  changePage = async (newPage: number) => {
     
     if (newPage == 1) {
       this.playersList = []; //in case they're going back to change the user list
@@ -134,21 +138,27 @@ export class AppComponent implements OnInit {
     }
 
     if (this.curPage == 1 && newPage == 2) {
-      
       //create the list of all players
       for (let p of this.playerNames) {
         let playerName = p[0];
         for (let i = 0; i < this.playerCounts[playerName]; i++) {
           this.playersList.push(new this.playerMapping[playerName]());
         }
+        let numPlayers = this.playersList.length+2;
+        this.matchResults = Array(numPlayers).fill([]).map(() => Array(numPlayers).fill([[], []]));
+        this.playerScores = Array(numPlayers).fill(0);
       }
       
-      this.apiService.getModel(this.playerCounts, this.payoffs).subscribe(res => {
-        this.model = res["model"];
-        this.playersList.push(new ModelPlayer(BigInt("0b"+this.model)));
-        this.playersList.push(new You());
-        this.curPage = newPage;
-      });
+      const res = await this.apiService.getModel(this.playerCounts, this.payoffs).toPromise();
+      this.model = res["model"];
+      this.playersList.push(new ModelPlayer(BigInt("0b"+this.model)));
+      this.playersList.push(new You());
+
+      this.curPage = newPage;
+      const setup = this.gameSetup();
+      this.orderMap = setup.orderMap;
+      this.roundsPerPlayer = setup.roundsPerPlayer;
+      this.calculateScores();
       return;
     }
 
@@ -162,19 +172,109 @@ export class AppComponent implements OnInit {
   //play that game, in the event receiver function in app.component just 
   //append the results from the event and begin a new game
   //right?
+  async calculateScores() {
+    console.log(this.orderMap)
+    console.log(this.roundsPerPlayer)
+    const n = this.playersList.length;
+    const modelPlayerIndex = n - 2; // Second to last player is the model
+    const humanPlayerIndex = n - 1; // Last player is human
 
+    // For each pair of players (excluding human)
+    for (let i = 0; i < n - 1; i++) {
+      for (let j = i; j < n - 1; j++) {
+        let numRounds;
+        let result;
 
-  //either move to the next game or don't
+        if (i === modelPlayerIndex || j === modelPlayerIndex) {
+          // If one player is the model, use the predetermined rounds from roundsPerPlayer
+
+          const nonModelIndex = i === modelPlayerIndex ? j : i;
+          // console.log(i, j, nonModelIndex, this.orderMap[nonModelIndex], this.roundsPerPlayer[this.orderMap[nonModelIndex]]);
+          numRounds = this.roundsPerPlayer[nonModelIndex];
+          result = this.playGameWithRounds(this.playersList[i], this.playersList[j], numRounds);
+        } else {
+          // Random number of rounds for non-model players
+          numRounds = 3;
+          while (numRounds < 8 && Math.random() < 0.65) {
+            numRounds++;
+          }
+          result = this.playGameWithRounds(this.playersList[i], this.playersList[j], numRounds);
+        }
+
+        const [moves, score1, score2] = result;
+        
+        // Store results symmetrically
+        this.matchResults[i][j] = moves;
+        this.matchResults[j][i] = [moves[1], moves[0]]; // Swap the moves for the opposite perspective
+        
+        // Update scores
+        this.playerScores[i] += score1;
+        this.playerScores[j] += score2;
+      }
+    }
+  }
+
+  playGameWithRounds(p1: Player, p2: Player, rounds: number): [[number[], number[]], number, number] {
+    let past_moves: [number[], number[]] = [[], []];
+    let score1 = 0;
+    let score2 = 0;
+
+    for (let i = 0; i < rounds; i++) {
+      let p1_action = p1.get_action(past_moves, i);
+      let p2_action = p2.get_action([past_moves[1], past_moves[0]], i);
+      score1 += this.payoffs[p1_action][p2_action];
+      score2 += this.payoffs[p2_action][p1_action];
+      past_moves[0].push(p1_action);
+      past_moves[1].push(p2_action);
+    }
+    return [past_moves, score1, score2];
+  }
+  gameSetup(): { orderMap: { [key: number]: number }, roundsPerPlayer: { [key: number]: number } } {
+    // Create array of indices excluding the You() player
+    const playerIndices = Array.from(
+      { length: this.playersList.length },
+      (_, i) => i
+    );
+
+    // Randomly shuffle the array
+    const shuffledIndices = playerIndices.sort(() => Math.random() - 0.5);
+
+    // Create order map where key is the turn order (0 goes first) and value is the player index
+    const orderMap: { [key: number]: number } = {};
+    shuffledIndices.forEach((playerIndex, orderIndex) => {
+      orderMap[orderIndex] = playerIndex;
+    });
+
+    // Generate number of rounds for each player
+    const roundsPerPlayer: { [key: number]: number } = {};
+    
+    shuffledIndices.forEach(playerIndex => {
+      let rounds = 3; // Start with minimum 3 rounds
+      // Keep adding rounds with 65% probability until we hit 8 rounds
+      while (rounds < 8 && Math.random() < 0.65) {
+        rounds++;
+      }
+      roundsPerPlayer[playerIndex] = rounds;
+    });
+
+    return {
+      orderMap,
+      roundsPerPlayer
+    };
+  }
+
+  //either move to the next game or continue to leaderboard page
   gameFinished(matchResult: [number[], number[]]) {
-    this.userGamesResults.push(matchResult);
-    // console.log(this.userGamesResults);
+    this.matchResults[this.playersList.length-1][this.orderMap[this.playersListIndex]] = matchResult;
+    this.matchResults[this.orderMap[this.playersListIndex]][this.playersList.length-1] = [matchResult[1], matchResult[0]]; //swap the moves for the other player
     if (this.playersListIndex < this.playersList.length-1) {
       this.playersListIndex += 1;
     } else {
       this.changePage(3);
     }
-    
   }
+
+
 
   ngOnInit() {
     window.addEventListener('keydown', (event) => {this.onKeyPress(event)});
@@ -189,7 +289,7 @@ export class AppComponent implements OnInit {
     }
   }
 
-  //SETS NUMBER OF EACH PLAYER; CHANGES FORM BORDER COLOR
+  //Set number of each player & change form border color
   setValue(player: string | null = null, event: any = null) {
     if (event != null && player != null) {
       this.playerCounts[player] = (Number)((event.target as HTMLInputElement).value);

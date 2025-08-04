@@ -13,22 +13,22 @@ import {MatInputModule} from '@angular/material/input';
   styleUrl: './play-game.component.scss'
 })
 export class PlayGameComponent {
-  //so we've got one player that we're going to be playing against
+  //Playing 1 match against a single player
   @Input() opponent!: Player;
-
+  @Input() rounds!: number; 
   @Output() results = new EventEmitter<[number[], number[]]>();
-
+  
   curMatch: [number[], number[]] = [[], []];
 
   handleAction(action: number) {
-    console.log(this.opponent);
+    // console.log(this.opponent);
     if (this.opponent instanceof You) {
       let userAction = action;
       let opponentAction = action;
       this.curMatch[0].push(userAction);
       this.curMatch[1].push(opponentAction);
 
-      if ((this.curMatch[0].length > 3 && Math.random() < .35) || this.curMatch[0].length > 8) {
+      if (this.curMatch[0].length >= this.rounds) {
         this.results.emit(this.curMatch);
         this.curMatch = [[], []];
       }
@@ -39,7 +39,7 @@ export class PlayGameComponent {
       this.curMatch[0].push(userAction);
       this.curMatch[1].push(opponentAction);
 
-      if ((this.curMatch[0].length > 3 && Math.random() < .35) || this.curMatch[0].length > 8) {
+      if (this.curMatch[0].length >= this.rounds) {
         this.results.emit(this.curMatch);
         this.curMatch = [[], []];
       }
