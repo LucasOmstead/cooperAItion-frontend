@@ -18,7 +18,7 @@ export class Defector extends Player {
   
   constructor() {
     super();
-    this.name = "Defector";
+    this.name = "Always Defect";
   }
   override get_action(past_moves: PastMoves, i: number): number {
     return 1;
@@ -29,7 +29,7 @@ export class Cooperator extends Player {
   
   constructor() {
     super();
-    this.name = "Cooperator";
+    this.name = "Always Cooperate";
   }
   override get_action(past_moves: PastMoves, i: number): number {
     return 0;
@@ -113,7 +113,7 @@ export class ModelPlayer extends Player {
   
   constructor(model: bigint) {
     super();
-    this.name = "Model";
+    this.name = "Sim Jim";
     this.model = model;
   }
 

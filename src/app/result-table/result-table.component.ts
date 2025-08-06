@@ -1,4 +1,4 @@
-import { ViewChild, Component, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnChanges } from '@angular/core';
 import { Input } from '@angular/core';
 import { OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -20,7 +20,7 @@ import {PastMoves, Player, Defector, Cooperator, GrimTrigger, RandomChooser, Tit
 //res should be stored in 3d array (2d for which players, 1d for res)
 //At the end, display a number in each cell of the table; when the user hovers over the number they can see the match history (stored in table)
 
-export class GameComponent implements OnInit {
+export class ResultTableComponent implements OnInit, OnChanges {
   @Input() scores: number[] = [];
   @Input() players: Player[] = [];
   @Input() payoffs: number[][] = [];
@@ -30,17 +30,27 @@ export class GameComponent implements OnInit {
   selectedPlayer: number | null = null;
   playerFinished = true;
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit(): void {
-    // Create array of player indices and their scores
-    this.rankedPlayers = this.scores.map((score, index) => ({
-      index,
-      score
-    }));
+    this.updateRankedPlayers();
+  }
 
-    // Sort by score in descending order
-    this.rankedPlayers.sort((a, b) => b.score - a.score);
+  ngOnChanges(): void {
+    this.updateRankedPlayers();
+  }
+
+  private updateRankedPlayers(): void {
+    if (this.scores.length > 0 && this.players.length > 0) {
+      // Create array of player indices and their scores
+      this.rankedPlayers = this.scores.map((score, index) => ({
+        index,
+        score
+      }));
+
+      // Sort by score in descending order
+      this.rankedPlayers.sort((a, b) => b.score - a.score);
+    }
   }
 
   togglePlayerDetails(rank: number): void {

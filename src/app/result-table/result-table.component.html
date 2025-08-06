@@ -1,7 +1,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="bg-blue-600 p-4">
-            <h1 class="text-2xl font-bold text-white text-center">Tournament Results</h1>
+            <h1 class="text-2xl font-bold text-white text-center">Tournament</h1>
         </div>
         
         <!-- Leaderboard -->
@@ -14,7 +14,7 @@
                      class="p-4 flex items-center justify-between cursor-pointer">
                     <div class="flex items-center space-x-4">
                         <span class="text-xl font-bold text-gray-500">{{rank + 1}}</span>
-                        <span class="text-lg font-semibold">{{players[player.index].constructor.name}}</span>
+                        <span class="text-lg font-semibold">{{players[player.index].name}}</span>
                     </div>
                     <span class="text-lg font-bold text-blue-600">{{player.score}} points</span>
                 </div>
@@ -28,7 +28,7 @@
                              class="bg-white rounded p-3 shadow-sm"
                              [class.hidden]="j === player.index">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="font-medium">vs {{players[j].constructor.name}}</span>
+                                <span class="font-medium">vs {{players[j].name}}</span>
                             </div>
                             <app-match-view [match]="matchResults[player.index][j]" 
                                           [payoffs]="payoffs">

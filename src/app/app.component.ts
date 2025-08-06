@@ -7,7 +7,7 @@ import {MatSliderModule} from '@angular/material/slider';
 import {MatButtonModule} from '@angular/material/button';
 import {MatInputModule} from '@angular/material/input';
 import { ApiService } from './services/api.service';
-import { GameComponent } from "./result-table/result-table.component";
+import { ResultTableComponent } from "./result-table/result-table.component";
 import { PlayGameComponent } from './play-game/play-game.component';
 
 import {PastMoves, Player, Defector, Cooperator, GrimTrigger, RandomChooser, TitForTat, TwoTitForTat, NiceTitForTat, SuspiciousTitForTat, ModelPlayer, You} from'./services/game.service';
@@ -22,12 +22,11 @@ import {PastMoves, Player, Defector, Cooperator, GrimTrigger, RandomChooser, Tit
   imports: [CommonModule,
     RouterOutlet,
     NamecardComponent,
-    GameComponent,
+    ResultTableComponent,
     MatButtonModule,
     MatInputModule,
     MatSliderModule,
-    FormsModule, 
-    GameComponent, 
+    FormsModule,  
     PlayGameComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
@@ -128,7 +127,6 @@ export class AppComponent implements OnInit {
   }
 
   changePage = async (newPage: number) => {
-    
     if (newPage == 1) {
       this.playersList = []; //in case they're going back to change the user list
       this.curPage = newPage;
@@ -166,15 +164,12 @@ export class AppComponent implements OnInit {
     return;
   };
 
-  //So we have a function that's called when you visit page 2
   //doesn't even have to be a function tbh, can just set curPlayer to the first in playerNames
   //*ngFor component in playerNames
   //play that game, in the event receiver function in app.component just 
   //append the results from the event and begin a new game
   //right?
   async calculateScores() {
-    console.log(this.orderMap)
-    console.log(this.roundsPerPlayer)
     const n = this.playersList.length;
     const modelPlayerIndex = n - 2; // Second to last player is the model
     const humanPlayerIndex = n - 1; // Last player is human
@@ -189,7 +184,6 @@ export class AppComponent implements OnInit {
           // If one player is the model, use the predetermined rounds from roundsPerPlayer
 
           const nonModelIndex = i === modelPlayerIndex ? j : i;
-          // console.log(i, j, nonModelIndex, this.orderMap[nonModelIndex], this.roundsPerPlayer[this.orderMap[nonModelIndex]]);
           numRounds = this.roundsPerPlayer[nonModelIndex];
           result = this.playGameWithRounds(this.playersList[i], this.playersList[j], numRounds);
         } else {
@@ -273,8 +267,6 @@ export class AppComponent implements OnInit {
       this.changePage(3);
     }
   }
-
-
 
   ngOnInit() {
     window.addEventListener('keydown', (event) => {this.onKeyPress(event)});
