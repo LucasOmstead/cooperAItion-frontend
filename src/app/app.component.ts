@@ -261,6 +261,22 @@ export class AppComponent implements OnInit {
   gameFinished(matchResult: [number[], number[]]) {
     this.matchResults[this.playersList.length-1][this.orderMap[this.playersListIndex]] = matchResult;
     this.matchResults[this.orderMap[this.playersListIndex]][this.playersList.length-1] = [matchResult[1], matchResult[0]]; //swap the moves for the other player
+
+    // Calculate and update scores for this match
+    const humanMoves = matchResult[0];
+    const opponentMoves = matchResult[1];
+    let humanScore = 0;
+    let opponentScore = 0;
+
+    for (let i = 0; i < humanMoves.length; i++) {
+      humanScore += this.payoffs[humanMoves[i]][opponentMoves[i]];
+      opponentScore += this.payoffs[opponentMoves[i]][humanMoves[i]];
+    }
+
+    // Add scores to the total
+    this.playerScores[this.playersList.length-1] += humanScore;
+    this.playerScores[this.orderMap[this.playersListIndex]] += opponentScore;
+
     if (this.playersListIndex < this.playersList.length-1) {
       this.playersListIndex += 1;
     } else {
