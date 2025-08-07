@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:5000/';
+  private apiUrl = '/api/';  // Use relative path through nginx proxy
 
   constructor(private http: HttpClient) {}
 
