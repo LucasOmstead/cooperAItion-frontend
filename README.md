@@ -1,3 +1,5 @@
+Currently deployed at lucasomstead.com
+
 Ever wondered how to beat the Iterated Prisoner's Dilemma?
 Now, you can create your own population of 
 strategies and play against each of them, along with several 
